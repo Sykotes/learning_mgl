@@ -1,0 +1,5 @@
+dist/
+build/
+.mypy_cache/
+ignore/
+__pycache__/
