@@ -40,8 +40,7 @@ class Camera:
         self.up = glm.normalize(glm.cross(self.right, self.forward))
 
     def get_view_matrix(self) -> glm.mat4:
-        # return glm.lookAt(self.position, self.position + self.forward, self.up)
-        return glm.lookAt(self.position, self.position + self.forward, self.up)
+        return glm.lookAt(self.position, glm.vec3(0, 0, 0), self.up)
 
     def get_projection_matrix(self) -> glm.mat4:
         return glm.perspective(glm.radians(FOV), self._aspect_ratio, NEAR, FAR)
@@ -99,10 +98,10 @@ program = ctx.program(
 # fmt: off
 vertices = np.asarray([
 
-     6.5, 6.5, -100.0,
-     6.5, -6.5, -100.0,
-     -6.5, -6.5, -100.0,
-     -6.5, 6.5, -100.0,
+     6.5, 6.5, 0.0,
+     6.5, -6.5, 0.0,
+     -6.5, -6.5, 0.0,
+     -6.5, 6.5, 0.0,
 
 ], dtype="f4")
 indices = np.asarray([
@@ -136,7 +135,7 @@ vertex_array_object = ctx.vertex_array(
 
 clock = pygame.Clock()
 
-camera = Camera(position=glm.vec3(2, 2, 7))
+camera = Camera(position=glm.vec3(2, 0, 7))
 running: bool = True
 while running:
     for event in pygame.event.get():
