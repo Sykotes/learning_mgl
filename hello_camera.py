@@ -11,12 +11,12 @@ FOV = 90
 class Camera:
     def __init__(
         self,
-        position: tuple[float, float, float] = (0, 0, 0),
-        yaw: float = 90,
+        position: glm.vec3 = glm.vec3(0),
+        yaw: float = glm.pi() / 2,
         pitch: float = 0,
     ) -> None:
         # Position X, Y, Z
-        self.position: tuple[float, float, float] = position
+        self.position: glm.vec3 = position
 
         # Camera/ Head angle in radians
         self.yaw: float = yaw
@@ -32,8 +32,6 @@ class Camera:
         self.view: glm.mat4x4 = glm.mat4()
 
     def update(self) -> None:
-        self.view = glm.lookAt(self.position, self.position + self.forward, self.up)
-
         self.forward.x = glm.cos(self.yaw) * glm.cos(self.pitch)
         self.forward.y = glm.sin(self.pitch)
         self.forward.z = glm.sin(self.yaw) * glm.cos(self.pitch)
@@ -41,6 +39,14 @@ class Camera:
         self.forward = glm.normalize(self.forward)
         self.right = glm.normalize(self.right)
         self.up = glm.normalize(glm.cross(self.forward, self.right))
+
+        self.view = glm.lookAt(
+            self.position,
+            self.position + self.forward,
+            self.up,
+        )
+
+        print(self.forward)
 
     @property
     def _aspect_ratio(self) -> float:
@@ -94,10 +100,10 @@ program = ctx.program(
 # fmt: off
 vertices = np.asarray([
 
-     0.5, 0.5, -10.0,
-     0.5, -0.5, -10.0,
-     -0.5, -0.5, -10.0,
-     -0.5, 0.5, -10.0,
+     6.5, 6.5, -100.0,
+     6.5, -6.5, -100.0,
+     -6.5, -6.5, -100.0,
+     -6.5, 6.5, -100.0,
 
 ], dtype="f4")
 indices = np.asarray([
@@ -129,7 +135,9 @@ vertex_array_object = ctx.vertex_array(
     index_buffer_object,
 )
 
-camera = Camera((0, 0, 0))
+clock = pygame.Clock()
+
+camera = Camera()
 running: bool = True
 while running:
     for event in pygame.event.get():
@@ -137,14 +145,20 @@ while running:
             running = False
 
     camera.update()
+    camera.position.z += 0.03
+
     ctx.clear()
 
     program["model"].write(glm.mat4())  # type: ignore
     program["projection"].write(camera.projection)  # type: ignore
     program["view"].write(camera.view)  # type: ignore
 
+    print(camera.position)
+
     ctx.enable(ctx.DEPTH_TEST)
     vertex_array_object.render()
     pygame.display.flip()
+
+    clock.tick(60)
 
 pygame.quit()
