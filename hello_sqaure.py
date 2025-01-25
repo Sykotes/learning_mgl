@@ -35,10 +35,10 @@ program = ctx.program(
 # fmt: off
 vertices = np.asarray([
 
-     0.5, 0.5, 0.0, 1.0, 0.0, 0.0,
-     0.5, -0.5, 0.0, 0.0, 1.0, 0.0,
-     -0.5, -0.5, 0.0, 0.0, 0.0, 1.0,
-     -0.5, 0.5, 0.0, 0.0, 0.0, 0.0,
+     0.5, 0.5, 0.0,
+     0.5, -0.5, 0.0,
+     -0.5, -0.5, 0.0,
+     -0.5, 0.5, 0.0,
 
 ], dtype="f4")
 indices = np.asarray([
@@ -47,14 +47,26 @@ indices = np.asarray([
     1, 2, 3,
         
 ], dtype="u4")
+colors = np.asarray([
+
+    255, 0, 0,
+    0, 255, 0,
+    0, 0, 255,
+    0, 0, 0,
+    
+], dtype="u1")
 # fmt: on
 
 vertex_buffer_object = ctx.buffer(vertices.tobytes())
 index_buffer_object = ctx.buffer(indices.tobytes())
+color_buffer_object = ctx.buffer(colors.tobytes())
 
 vertex_array_object = ctx.vertex_array(
     program,
-    [(vertex_buffer_object, "3f 3f", "in_vert", "in_color")],
+    [
+        (vertex_buffer_object, "3f", "in_vert"),
+        (color_buffer_object, "3f1", "in_color"),
+    ],
     index_buffer_object,
 )
 
