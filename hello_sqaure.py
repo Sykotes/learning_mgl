@@ -9,11 +9,13 @@ program = ctx.program(
         #version 330
 
         in vec3 in_vert;
+        in vec3 in_color;
 
         out vec3 v_color;
 
         void main() {
-            v_color = vec3(1.0, 1.0, 1.0);
+            // v_color = vec3(1.0, 1.0, 1.0);
+            v_color = in_color;
             gl_Position = vec4(in_vert, 1.0);
         }
     """,
@@ -33,10 +35,10 @@ program = ctx.program(
 # fmt: off
 vertices = np.asarray([
 
-     0.5, 0.5, 0.0,
-     0.5, -0.5, 0.0,
-     -0.5, -0.5, 0.0,
-     -0.5, 0.5, 0.0,
+     0.5, 0.5, 0.0, 1.0, 0.0, 0.0,
+     0.5, -0.5, 0.0, 0.0, 1.0, 0.0,
+     -0.5, -0.5, 0.0, 0.0, 0.0, 1.0,
+     -0.5, 0.5, 0.0, 0.0, 0.0, 0.0,
 
 ], dtype="f4")
 indices = np.asarray([
@@ -52,9 +54,7 @@ index_buffer_object = ctx.buffer(indices.tobytes())
 
 vertex_array_object = ctx.vertex_array(
     program,
-    [
-        (vertex_buffer_object, "3f", "in_vert"),
-    ],
+    [(vertex_buffer_object, "3f 3f", "in_vert", "in_color")],
     index_buffer_object,
 )
 
