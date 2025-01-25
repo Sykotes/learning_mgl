@@ -38,26 +38,6 @@ class Camera:
         self.position += self.forward * 0.01
 
 
-# class Camera:
-#     def __init__(self) -> None:
-#         self.position = glm.vec3(2, 0, 2)
-#         self.pitch = glm.radians(-90)
-#         self.yaw = 0
-#         self.up = glm.vec3(0, 1, 0)
-#         self.forward = glm.vec3(0, 0, -1)
-#
-#         self.view = glm.lookAt(self.position, glm.vec3(0), self.up)
-#         self.proj = glm.perspective(glm.radians(60), 4 / 3, 0.1, 100)
-#         self.model = glm.mat4()
-#
-#     def update(self) -> None:
-#         self.move()
-#         self.view = glm.lookAt(self.position, glm.vec3(0), self.up)
-#
-#     def move(self) -> None:
-#         self.position.xz += 0.001
-
-
 class Game:
     def __init__(self) -> None:
         _ = pygame.init()
