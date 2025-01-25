@@ -6,47 +6,24 @@ import pygame
 NEAR = 0.1
 FAR = 1000
 FOV = 90
+SPEED = 0.1
 
 
 class Camera:
-    def __init__(
-        self,
-        position: glm.vec3 = glm.vec3(0),
-        yaw: float = glm.pi() / 2,
-        pitch: float = 0,
-    ) -> None:
-        # Position X, Y, Z
-        self.position: glm.vec3 = position
-
-        # Camera/ Head angle in radians
-        self.yaw: float = yaw
-        self.pitch: float = pitch
-
+    def __init__(self) -> None:
+        self.position: glm.vec3 = glm.vec3(2, 3, 3)
         self.up = glm.vec3(0, 1, 0)
         self.right = glm.vec3(1, 0, 0)
         self.forward = glm.vec3(0, 0, -1)
 
-        self.projection: glm.mat4x4 = glm.perspective(
-            self._v_fov, self._aspect_ratio, NEAR, FAR
-        )
-        self.view: glm.mat4x4 = glm.mat4()
+        self.m_view = self.get_projection_matrix()
+        self.m_proj = self.get_view_matrix()
 
-    def update(self) -> None:
-        self.forward.x = glm.cos(self.yaw) * glm.cos(self.pitch)
-        self.forward.y = glm.sin(self.pitch)
-        self.forward.z = glm.sin(self.yaw) * glm.cos(self.pitch)
+    def get_view_matrix(self) -> glm.mat4:
+        return glm.lookAt(self.position, glm.vec3(0), self.up)
 
-        self.forward = glm.normalize(self.forward)
-        self.right = glm.normalize(self.right)
-        self.up = glm.normalize(glm.cross(self.forward, self.right))
-
-        self.view = glm.lookAt(
-            self.position,
-            self.position + self.forward,
-            self.up,
-        )
-
-        print(self.forward)
+    def get_projection_matrix(self) -> glm.mat4:
+        return glm.perspective(glm.radians(FOV), self._aspect_ratio, NEAR, FAR)
 
     @property
     def _aspect_ratio(self) -> float:
@@ -64,6 +41,7 @@ pygame.init()
 pygame.display.set_mode((800, 600), pygame.OPENGL | pygame.DOUBLEBUF | pygame.RESIZABLE)
 
 ctx = mgl.create_context()
+ctx.gc_mode = "auto"
 
 program = ctx.program(
     vertex_shader="""
@@ -144,14 +122,13 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    camera.update()
     camera.position.z += 0.03
 
     ctx.clear()
 
     program["model"].write(glm.mat4())  # type: ignore
-    program["projection"].write(camera.projection)  # type: ignore
-    program["view"].write(camera.view)  # type: ignore
+    program["projection"].write(camera.m_proj)  # type: ignore
+    program["view"].write(camera.m_view)  # type: ignore
 
     print(camera.position)
 
