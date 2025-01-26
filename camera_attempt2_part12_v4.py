@@ -1,3 +1,5 @@
+import math
+
 import glm
 import moderngl as mgl
 import numpy as np
@@ -6,22 +8,19 @@ import pygame
 
 class Camera:
     def __init__(self) -> None:
-        self.position = glm.vec3(2, 0, 2)  # Initial position of the camera
-        direction = glm.vec3(0, 0, 0) - self.position  # Vector to the origin
+        self.position = glm.vec3(2, 0, 2)
 
-        # Calculate pitch and yaw to look at the origin
-        self.pitch = glm.asin(direction.y / glm.length(direction))  # Pitch angle
-        self.yaw = glm.atan(direction.z, direction.x)  # Yaw angle
-
-        print(glm.degrees(self.pitch), glm.degrees(self.yaw))
+        self.pitch: float = 0
+        self.yaw = -0.75 * glm.pi()
 
         self.up = glm.vec3(0, 1, 0)
         self.forward = glm.vec3(0, 0, -1)
-
+        self.right = glm.vec3(0, 0, 0)
         self.update_forward()
-        self.view = glm.lookAt(self.position, self.position + self.forward, self.up)
-        self.proj = glm.perspective(glm.radians(60), 4 / 3, 0.1, 100)
-        self.model = glm.mat4()
+
+        self.m_view = glm.lookAt(self.position, self.position + self.forward, self.up)
+        self.m_proj = glm.perspective(glm.radians(60), 4 / 3, 0.1, 100)
+        self.m_model = glm.mat4()
 
     def update_forward(self) -> None:
         self.forward.x = glm.cos(self.pitch) * glm.cos(self.yaw)
@@ -29,21 +28,50 @@ class Camera:
         self.forward.z = glm.cos(self.pitch) * glm.sin(self.yaw)
         self.forward = glm.normalize(self.forward)
 
+        self.right = glm.normalize(glm.cross(self.up, self.forward))
+
     def update(self) -> None:
         self.move()
+        self.rotate()
         self.update_forward()
-        self.view = glm.lookAt(self.position, self.position + self.forward, self.up)
+        self.m_view = glm.lookAt(self.position, self.position + self.forward, self.up)
+
+    def rotate(self) -> None:
+        mouse_x, mouse_y = pygame.mouse.get_rel()
+
+        sensitivity = 0.002
+
+        self.yaw += mouse_x * sensitivity
+        self.pitch -= mouse_y * sensitivity
+        self.pitch = max(min(self.pitch, glm.pi() / 2), -glm.pi() / 2)
+
+        self.update_forward()
 
     def move(self) -> None:
-        self.position += self.forward * 0.01
+        keys_pressed = pygame.key.get_pressed()
+        if keys_pressed[pygame.K_w]:
+            self.position += self.forward * 0.01
+        if keys_pressed[pygame.K_s]:
+            self.position -= self.forward * 0.01
+        if keys_pressed[pygame.K_a]:
+            self.position += self.right * 0.01
+        if keys_pressed[pygame.K_d]:
+            self.position -= self.right * 0.01
+        if keys_pressed[pygame.K_SPACE]:
+            self.position += self.up * 0.01
+        if keys_pressed[pygame.K_LSHIFT]:
+            self.position -= self.up * 0.01
 
 
 class Game:
     def __init__(self) -> None:
         _ = pygame.init()
         _ = pygame.display.set_mode((800, 600), pygame.OPENGL | pygame.DOUBLEBUF)
+        _ = pygame.mouse.set_visible(False)
+        pygame.mouse.set_pos(400, 300)
 
         self.ctx = mgl.create_context()
+        self.ctx.gc_mode = "auto"
 
         self.camera = Camera()
         self.setup_render()
@@ -99,9 +127,9 @@ class Game:
     def render(self) -> None:
         self.ctx.clear(0.17, 0.2, 0.3)
 
-        self.program["model"].write(self.camera.model)  # type: ignore
-        self.program["proj"].write(self.camera.proj)  # type: ignore
-        self.program["view"].write(self.camera.view)  # type: ignore
+        self.program["model"].write(self.camera.m_model)  # type: ignore
+        self.program["proj"].write(self.camera.m_proj)  # type: ignore
+        self.program["view"].write(self.camera.m_view)  # type: ignore
 
         self.vao.render()
         pygame.display.flip()
@@ -112,6 +140,7 @@ class Game:
                 if event.type == pygame.QUIT:
                     self.running = False
 
+            pygame.mouse.set_pos(400, 300)
             self.camera.update()
             self.render()
 
