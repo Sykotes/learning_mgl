@@ -2,8 +2,9 @@ import moderngl as mgl
 import numpy as np
 import pygame
 
-pygame.init()
-pygame.display.set_mode((800, 600), pygame.OPENGL | pygame.DOUBLEBUF)
+result = pygame.init()
+print(result)
+_ = pygame.display.set_mode((800, 600), pygame.OPENGL | pygame.DOUBLEBUF)
 
 ctx = mgl.create_context()
 
