@@ -1,9 +1,9 @@
-import math
-
 import glm
 import moderngl as mgl
 import numpy as np
 import pygame
+
+FOV = 60
 
 
 class Camera:
@@ -19,7 +19,7 @@ class Camera:
         self.update_forward()
 
         self.m_view = glm.lookAt(self.position, self.position + self.forward, self.up)
-        self.m_proj = glm.perspective(glm.radians(60), 4 / 3, 0.1, 100)
+        self.m_proj = glm.perspective(glm.radians(FOV), self.aspect_ratio, 0.1, 100)
         self.m_model = glm.mat4()
 
     def update_forward(self) -> None:
@@ -34,6 +34,7 @@ class Camera:
         self.move()
         self.rotate()
         self.update_forward()
+        self.m_proj = glm.perspective(glm.radians(FOV), self.aspect_ratio, 0.1, 100)
         self.m_view = glm.lookAt(self.position, self.position + self.forward, self.up)
 
     def rotate(self) -> None:
@@ -62,13 +63,18 @@ class Camera:
         if keys_pressed[pygame.K_LSHIFT]:
             self.position -= self.up * 0.01
 
+    @property
+    def aspect_ratio(self) -> float:
+        width, height = pygame.display.get_window_size()
+        return width / height
+
 
 class Game:
     def __init__(self) -> None:
         _ = pygame.init()
-        _ = pygame.display.set_mode((800, 600), pygame.OPENGL | pygame.DOUBLEBUF)
-        _ = pygame.mouse.set_visible(False)
-        pygame.mouse.set_pos(400, 300)
+        _ = pygame.display.set_mode(
+            (800, 600), pygame.OPENGL | pygame.DOUBLEBUF | pygame.RESIZABLE
+        )
 
         self.ctx = mgl.create_context()
         self.ctx.gc_mode = "auto"
@@ -140,7 +146,12 @@ class Game:
                 if event.type == pygame.QUIT:
                     self.running = False
 
-            pygame.mouse.set_pos(400, 300)
+            if pygame.mouse.get_focused():
+                _ = pygame.mouse.set_visible(False)
+                pygame.mouse.set_pos(400, 300)
+            else:
+                _ = pygame.mouse.set_visible(True)
+
             self.camera.update()
             self.render()
 

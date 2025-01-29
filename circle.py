@@ -36,7 +36,7 @@ program = ctx.program(
 )
 
 r = 0.7
-circle_segments = 100
+circle_segments = 250_000_000  # highest possible is 268_435_455
 circle_angles = np.linspace(0, 2 * np.pi, circle_segments, endpoint=False)
 circle_vertices = np.column_stack(
     (np.cos(circle_angles) * r, np.sin(circle_angles) * r)
@@ -44,12 +44,14 @@ circle_vertices = np.column_stack(
 
 vbo = ctx.buffer(circle_vertices.tobytes())
 vao = ctx.vertex_array(program, [(vbo, "2f", "in_vert")])
+vao2 = ctx.vertex_array(program, [(vbo, "2f", "in_vert")])
 
 fbo = ctx.framebuffer(color_attachments=[ctx.texture((512, 512), 3)])
 fbo.use()
 fbo.clear(1.0, 1.0, 1.0)
 
 vao.render(mgl.TRIANGLE_FAN)
+vao2.render(mgl.TRIANGLE_FAN)
 
 image = Image.frombytes(
     "RGB",
