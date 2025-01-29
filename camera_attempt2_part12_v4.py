@@ -117,9 +117,9 @@ class Game:
         )
 
         vertices = [
-            (0.0, 0.5, 0.0),  # Top vertex
-            (-0.5, -0.5, 0.0),  # Bottom-left vertex
-            (0.5, -0.5, 0.0),  # Bottom-right vertex
+            (0.0, 0.0, 0.0),  # Bottom-left vertex
+            (4.0, 2.0, 7.0),  # Top vertex
+            (3.0, 4.0, -1.0),  # Bottom-right vertex
         ]
 
         vertices_array = np.array(vertices, dtype="f4")
