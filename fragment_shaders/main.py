@@ -1,3 +1,4 @@
+import math
 import os
 import threading
 import time
@@ -55,6 +56,8 @@ def main() -> None:
     vao = ctx.vertex_array(program, [])
 
     running = True
+
+    clock = pygame.time.Clock()
     start_time = time.time()
     while running:
         for event in pygame.event.get():
@@ -72,6 +75,7 @@ def main() -> None:
                     reloaded = True
                 except Exception as e:
                     print(f"Shader Error: {e}")
+                    pygame.display.set_caption("ERROR")
                     time.sleep(2.5)
 
             vao = ctx.vertex_array(program, [])
@@ -96,5 +100,10 @@ def main() -> None:
         ctx.clear(0.39, 0.67, 0.96)
         vao.render(mgl.TRIANGLES, vertices=3)
         pygame.display.flip()
+
+        fps = math.floor(clock.get_fps())
+        title = f"FPS: {fps}"
+        pygame.display.set_caption(title)
+        _ = clock.tick(60)
 
     pygame.quit()
