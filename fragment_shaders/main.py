@@ -1,3 +1,5 @@
+import os
+import threading
 import time
 
 import glm
@@ -5,10 +7,28 @@ import moderngl as mgl
 import pygame
 
 WIDTH: int = 800
-HEIGHT: int = 600
+HEIGHT: int = 800
+
+frag_path = "./shaders/shader.frag"
+should_reload = threading.Event()
 
 
-def auto_reload_program() -> mgl.Program: ...
+def detect_file_change_thread() -> None:
+    last_modified_time = os.path.getmtime(frag_path)
+
+    while True:
+        time.sleep(0.2)
+        current_modified_time = os.path.getmtime(frag_path)
+        if current_modified_time != last_modified_time and not should_reload.is_set():
+            should_reload.set()
+            last_modified_time = current_modified_time
+
+
+def get_new_shader() -> str:
+    with open(frag_path) as file:
+        fragment_shader = file.read()
+
+    return fragment_shader
 
 
 def main() -> None:
@@ -21,10 +41,13 @@ def main() -> None:
     with open("./shaders/shader.vert") as file:
         vertex_shader = file.read()
 
-    with open("./shaders/shader.frag") as file:
+    with open(frag_path) as file:
         fragment_shader = file.read()
 
     program = ctx.program(vertex_shader=vertex_shader, fragment_shader=fragment_shader)
+
+    thread = threading.Thread(target=detect_file_change_thread, daemon=True)
+    thread.start()
 
     vao = ctx.vertex_array(program, [])
 
@@ -34,6 +57,22 @@ def main() -> None:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
+        if should_reload.is_set():
+            print("reload")
+            reloaded = False
+            while not reloaded:
+                try:
+                    program = ctx.program(
+                        vertex_shader=vertex_shader, fragment_shader=get_new_shader()
+                    )
+                    reloaded = True
+                except Exception as e:
+                    print(f"Shader Error: {e}")
+                    time.sleep(1.0)
+
+            vao = ctx.vertex_array(program, [])
+            should_reload.clear()
 
         t = time.time() - start_time
 
