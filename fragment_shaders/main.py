@@ -14,11 +14,14 @@ should_reload = threading.Event()
 
 
 def detect_file_change_thread() -> None:
-    last_modified_time = os.path.getmtime(frag_path)
-
+    last_modified_time = 0
+    current_modified_time = 0
     while True:
         time.sleep(0.2)
-        current_modified_time = os.path.getmtime(frag_path)
+        try:
+            current_modified_time = os.path.getmtime(frag_path)
+        except:
+            continue
         if current_modified_time != last_modified_time and not should_reload.is_set():
             should_reload.set()
             last_modified_time = current_modified_time
